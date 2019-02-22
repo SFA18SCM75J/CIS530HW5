@@ -14,7 +14,10 @@ def start_pad(n):
 def ngrams(n, text):
     ''' Returns the ngrams of the text as tuples where the first element is
         the length-n context and the second is the character '''
-    pass
+    padded = start_pad(n) + text
+    ngrams = [tuple((padded[i:n+i],c)) for i,c in enumerate(text)]
+
+    return ngrams
 
 def create_ngram_model(model_class, path, n=2, k=0):
     ''' Creates and returns a new n-gram model trained on the city names
