@@ -44,29 +44,64 @@ class NgramModel(object):
     ''' A basic n-gram model using add-k smoothing '''
 
     def __init__(self, n, k):
-        pass
+        self.n = n
+        self.vocab = set()
+        self.ngram_probs = {}
 
     def get_vocab(self):
         ''' Returns the set of characters in the vocab '''
-        pass
+        return self.vocab
 
     def update(self, text):
         ''' Updates the model n-grams based on text '''
-        pass
+        probs = self.ngram_probs
+        grams = ngrams(self.n, text)
+        for context, char in grams:
+            self.vocab.add(char)
+            if context in probs:
+                if char in probs[context]:
+                    probs[context][char] += 1
+                else:
+                    probs[context][char] = 1
+            else:
+                probs[context] = {}
+                probs[context][char] = 1
 
     def prob(self, context, char):
         ''' Returns the probability of char appearing after context '''
-        pass
+        if char not in self.vocab:
+            return 0
+        probs = self.ngram_probs
+        if context not in probs:
+            return 1 / len(self.vocab)
+        else:
+            if char not in probs[context]:
+                return 0
+            else:
+                total = sum(probs[context].values())
+                return probs[context][char] / total
 
     def random_char(self, context):
         ''' Returns a random character based on the given context and the 
             n-grams learned by this model '''
-        pass
+        r = random.random()
+        vocab = sorted(self.vocab)
+        prob_sum = 0
+        for v in vocab:
+            prob_sum += self.prob(context, v)
+            if prob_sum > r:
+                return v
 
     def random_text(self, length):
         ''' Returns text of the specified character length based on the
             n-grams learned by this model '''
-        pass
+        context = '~' * self.n
+        text = ''
+        for _ in range(length):
+            char = self.random_char(context)
+            text += char
+            context = context[1:] + char
+        return text
 
     def perplexity(self, text):
         ''' Returns the perplexity of text based on the n-grams learned by
@@ -97,4 +132,23 @@ class NgramModelWithInterpolation(NgramModel):
 ################################################################################
 
 if __name__ == '__main__':
-    pass
+    # m = NgramModel(1, 0)
+    # m.update('abab')
+    # print(m.get_vocab())
+    # m.update('abcd')
+    # print(m.get_vocab())
+    # print(m.prob('a', 'b'))
+    # print(m.prob('~', 'c'))
+    # print(m.prob('b', 'c'))
+
+    # m = NgramModel(0, 0)
+    # m.update('abab')
+    # m.update('abcd')
+    # random.seed(1)
+    # print([m.random_char('') for i in range(25)])
+
+     m = NgramModel(1, 0)
+     m.update('abab')
+     m.update('abcd')
+     random.seed(1)
+     print(m.random_text(25))
