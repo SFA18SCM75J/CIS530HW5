@@ -147,8 +147,24 @@ if __name__ == '__main__':
     # random.seed(1)
     # print([m.random_char('') for i in range(25)])
 
-     m = NgramModel(1, 0)
-     m.update('abab')
-     m.update('abcd')
-     random.seed(1)
-     print(m.random_text(25))
+     # m = NgramModel(1, 0)
+     # m.update('abab')
+     # m.update('abcd')
+     # random.seed(1)
+     # print(m.random_text(25))
+
+    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 2)
+    print('N=2')
+    print(m.random_text(250))
+
+    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 3)
+    print('N=3')
+    print(m.random_text(250))
+
+    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 4)
+    print('N=4')
+    print(m.random_text(250))
+
+    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 7)
+    print('N=7')
+    print(m.random_text(250))
