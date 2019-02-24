@@ -103,7 +103,7 @@ class NgramModel(object):
         for _ in range(length):
             char = self.random_char(context)
             text += char
-            context = context[1:] + char
+            context = context[1:] + char if self.n > 0 else ''
         return text
 
     def perplexity(self, text):
