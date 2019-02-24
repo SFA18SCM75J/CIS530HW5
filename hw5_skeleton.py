@@ -45,6 +45,7 @@ class NgramModel(object):
 
     def __init__(self, n, k):
         self.n = n
+        self.k = k
         self.vocab = set()
         self.ngram_probs = {}
 
@@ -75,14 +76,16 @@ class NgramModel(object):
         if context not in probs:
             return 1 / len(self.vocab)
         else:
-            if char not in probs[context]:
-                return 0
-            else:
-                total = sum(probs[context].values())
-                return probs[context][char] / total
+            total = sum(probs[context].values()) + self.k * len(self.vocab)
+            return (probs[context].get(char, 0) + self.k) / total
+            # if char not in probs[context]:
+            #     return 0
+            # else:
+            #     total = sum(probs[context].values())
+            #     return probs[context][char] / total
 
     def random_char(self, context):
-        ''' Returns a random character based on the given context and the 
+        ''' Returns a random character based on the given context and the
             n-grams learned by this model '''
         r = random.random()
         vocab = sorted(self.vocab)
@@ -116,15 +119,44 @@ class NgramModelWithInterpolation(NgramModel):
     ''' An n-gram model with interpolation '''
 
     def __init__(self, n, k):
-        pass
+        NgramModel.__init__(self, n, k)
+        self.lambdas = [1 / (n + 1)] * (n + 1)
 
     def get_vocab(self):
-        pass
+        return self.vocab
 
     def update(self, text):
-        pass
+        probs = self.ngram_probs
+        grams = ngrams(self.n, text)
+        for context, char in grams:
+            self.vocab.add(char)
+            for i in range(self.n + 1):
+                sub_context = context[i:]
+                if sub_context in probs:
+                    if char in probs[sub_context]:
+                        probs[sub_context][char] += 1
+                    else:
+                        probs[sub_context][char] = 1
+                else:
+                    probs[sub_context] = {}
+                    probs[sub_context][char] = 1
 
     def prob(self, context, char):
+        if char not in self.vocab:
+            return 0
+        probs = self.ngram_probs
+        prob_calcs = []
+        for i in range(self.n + 1):
+            sub_context = context[i:]
+            if sub_context not in probs:
+                prob_calcs.append(1 / len(self.vocab))
+            else:
+                total = sum(probs[sub_context].values()) + self.k * len(self.vocab)
+                prob_calcs.append((probs[sub_context].get(char, 0) + self.k) / total)
+        return sum([l * prob for l, prob in zip(self.lambdas, prob_calcs)])
+
+    # TODO
+    def set_lambdas(self):
         pass
 
 ################################################################################
@@ -147,24 +179,49 @@ if __name__ == '__main__':
     # random.seed(1)
     # print([m.random_char('') for i in range(25)])
 
-     # m = NgramModel(1, 0)
-     # m.update('abab')
-     # m.update('abcd')
-     # random.seed(1)
-     # print(m.random_text(25))
+    # m = NgramModel(1, 0)
+    # m.update('abab')
+    # m.update('abcd')
+    # random.seed(1)
+    # print(m.random_text(25))
 
-    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 2)
-    print('N=2')
-    print(m.random_text(250))
+    # m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 2)
+    # print('N=2')
+    # print(m.random_text(250))
 
-    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 3)
-    print('N=3')
-    print(m.random_text(250))
+    # m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 3)
+    # print('N=3')
+    # print(m.random_text(250))
+    #
+    # m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 4)
+    # print('N=4')
+    # print(m.random_text(250))
 
-    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 4)
-    print('N=4')
-    print(m.random_text(250))
+    # m = create_ngram_model(NgramModel, '../../shakespeare_input.txt', 7)
+    # print('N=7')
+    # print(m.random_text(250))
 
-    m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 7)
-    print('N=7')
-    print(m.random_text(250))
+    # m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 12)
+    # print('N=12')
+    # print(m.random_text(500))
+
+    # m = NgramModel(1, 1)
+    # m.update('abab')
+    # m.update('abcd')
+    # print(m.prob('a', 'a'))
+    # print(m.prob('a', 'b'))
+    # print(m.prob('c', 'd'))
+    # print(m.prob('d', 'a'))
+
+    # m = NgramModelWithInterpolation(1, 0)
+    # m.update('abab')
+    # print(m.prob('a', 'a'))
+    # print(m.prob('a', 'b'))
+    #
+    # m = NgramModelWithInterpolation(2, 1)
+    # m.update('abab')
+    # m.update('abcd')
+    # print(m.prob('~a', 'b'))
+    # print(m.prob('ba', 'b'))
+    # print(m.prob('~c', 'd'))
+    # print(m.prob('bc', 'd'))
