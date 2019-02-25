@@ -70,8 +70,6 @@ class NgramModel(object):
 
     def prob(self, context, char):
         ''' Returns the probability of char appearing after context '''
-        if char not in self.vocab:
-            return 0
         probs = self.ngram_probs
         if context not in probs:
             return 1 / len(self.vocab)
@@ -114,7 +112,7 @@ class NgramModel(object):
         context = '~' * self.n
         for i in range(N):
         	prob = self.prob(context, text[i])
-        	if prob == 0:
+        	if (prob == 0):
         		return float('inf')
         	log_sum += math.log(prob)
 
@@ -153,8 +151,6 @@ class NgramModelWithInterpolation(NgramModel):
                     probs[sub_context][char] = 1
 
     def prob(self, context, char):
-        if char not in self.vocab:
-            return 0
         probs = self.ngram_probs
         prob_calcs = []
         for i in range(self.n + 1):
@@ -208,7 +204,7 @@ if __name__ == '__main__':
     # print('N=4')
     # print(m.random_text(250))
 
-    # m = create_ngram_model(NgramModel, '../../shakespeare_input.txt', 7)
+    # m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 7)
     # print('N=7')
     # print(m.random_text(250))
 
@@ -236,3 +232,22 @@ if __name__ == '__main__':
     # print(m.prob('ba', 'b'))
     # print(m.prob('~c', 'd'))
     # print(m.prob('bc', 'd'))
+
+    ## Perplexity
+	# m = NgramModel(1, 0)
+	# m.update('abab')
+	# m.update('abcd')
+	# print(m.perplexity('abcd'))
+	# print(m.perplexity('abca'))
+	# print(m.perplexity('abcda'))
+
+	m = create_ngram_model(NgramModel, 'shakespeare_input.txt', 7, 1)
+	with open('shakespeare_input.txt', encoding='utf-8', errors='ignore') as f:
+	    print("Training Text File")
+	    print(m.perplexity(f.read()))
+	with open('test_data/shakespeare_sonnets.txt', encoding='utf-8', errors='ignore') as f:
+	    print("Shakespeare Sonnets")
+	    print(m.perplexity(f.read()))
+	with open('test_data/nytimes_article.txt', encoding='utf-8', errors='ignore') as f:
+	    print("NYT Article")
+	    print(m.perplexity(f.read()))
