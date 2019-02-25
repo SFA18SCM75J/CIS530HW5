@@ -109,7 +109,18 @@ class NgramModel(object):
     def perplexity(self, text):
         ''' Returns the perplexity of text based on the n-grams learned by
             this model '''
-        pass
+        N = len(text)
+        log_sum = 0
+        context = '~' * self.n
+        for i in range(N):
+        	prob = self.prob(context, text[i])
+        	if prob == 0:
+        		return float('inf')
+        	log_sum += math.log(prob)
+
+        	context = context[1:] + text[i]
+
+        return math.exp((-1/N) * log_sum)
 
 ################################################################################
 # Part 2: N-Gram Model with Interpolation
